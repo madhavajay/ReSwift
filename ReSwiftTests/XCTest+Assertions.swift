@@ -26,35 +26,24 @@ public extension XCTestCase {
      */
     public func expectFatalError(expectedMessage: String? = nil, file: StaticString = #file,
                                  line: UInt = #line, testCase: () -> Void) {
-        #if swift(>=3)
-            expectAssertionNoReturnFunction(
-                functionName: "fatalError",
-                file: file,
-                line: line,
-                function: { (caller) -> Void in
-
-                    Assertions.fatalErrorClosure = { message, _, _ in caller(message) }
-
-            }, expectedMessage: expectedMessage, testCase: testCase) { _ in
-                Assertions.fatalErrorClosure = Assertions.swiftFatalErrorClosure
-            }
-        #else
-            expectAssertionNoReturnFunction("fatalError", file: file, line: line, function: {
-                (caller) -> Void in
+        expectAssertionNoReturnFunction(
+            functionName: "fatalError",
+            file: file,
+            line: line,
+            function: { (caller) -> Void in
 
                 Assertions.fatalErrorClosure = { message, _, _ in caller(message) }
 
-            }, expectedMessage: expectedMessage, testCase: testCase) { _ in
-                Assertions.fatalErrorClosure = Assertions.swiftFatalErrorClosure
-            }
-        #endif
+        }, expectedMessage: expectedMessage, testCase: testCase) { _ in
+            Assertions.fatalErrorClosure = Assertions.swiftFatalErrorClosure
+        }
     }
 
     // MARK:- Private Methods
 
     // swiftlint:disable function_parameter_count
     private func expectAssertionNoReturnFunction(
-        functionName: String,
+        functionName funcName: String,
         file: StaticString,
         line: UInt,
         function: (caller: (String) -> Void) -> Void,
@@ -62,11 +51,7 @@ public extension XCTestCase {
         testCase: () -> Void,
         cleanUp: () -> ()) {
 
-        #if swift(>=3)
-            let asyncExpectation = expectation(withDescription: functionName + "-Expectation")
-        #else
-            let asyncExpectation = expectationWithDescription(functionName + "-Expectation")
-        #endif
+        let asyncExpectation = futureExpectation(withDescription: funcName + "-Expectation")
         var assertionMessage: String? = nil
 
         function { (message) -> Void in
@@ -75,35 +60,19 @@ public extension XCTestCase {
         }
 
         // act, perform on separate thead because a call to function runs forever
-        #if swift(>=3)
-            DispatchQueue.global(attributes: .qosUserInitiated).async(execute: testCase)
+        dispatchUserInitiatedAsync(execute: testCase)
 
-            waitForExpectations(withTimeout: noReturnFailureWaitTime) { _ in
-                defer { cleanUp() }
-                guard let assertionMessage = assertionMessage else {
-                    XCTFail(functionName + " is expected to be called.", file: file, line: line)
-                    return
-                }
-                if let expectedMessage = expectedMessage {
-                    XCTAssertEqual(assertionMessage, expectedMessage, functionName +
-                        " called with incorrect message.", file: file, line: line)
-                }
+        waitForFutureExpectations(withTimeout: noReturnFailureWaitTime) { _ in
+            defer { cleanUp() }
+            guard let assertionMessage = assertionMessage else {
+                XCTFail(funcName + " is expected to be called.", file: file, line: line)
+                return
             }
-        #else
-            dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), testCase)
-
-            waitForExpectationsWithTimeout(noReturnFailureWaitTime) { _ in
-                defer { cleanUp() }
-                guard let assertionMessage = assertionMessage else {
-                    XCTFail(functionName + " is expected to be called.", file: file, line: line)
-                    return
-                }
-                if let expectedMessage = expectedMessage {
-                    XCTAssertEqual(assertionMessage, expectedMessage, functionName +
-                        " called with incorrect message.", file: file, line: line)
-                }
+            if let expectedMessage = expectedMessage {
+                XCTAssertEqual(assertionMessage, expectedMessage, funcName +
+                    " called with incorrect message.", file: file, line: line)
             }
-        #endif
+        }
     }
     // swiftlint:enable function_parameter_count
 }

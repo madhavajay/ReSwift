@@ -53,24 +53,19 @@ public class Store<State: StateType>: StoreType {
         self.reducer = reducer
 
         // Wrap the dispatch function with all middlewares
-        #if swift(>=3)
-            self.dispatchFunction = middleware
-                .reversed()
-                .reduce({ [unowned self] action in self._defaultDispatch(action) }) {
-                    [weak self] dispatchFunction, middleware in
-                    let getState = { self?.state }
-                    return middleware(self?.dispatch, getState)(dispatchFunction)
-            }
-        #else
-            self.dispatchFunction = middleware
-                .reverse()
-                .reduce({ [unowned self] action in self._defaultDispatch(action) }) {
-                    [weak self] dispatchFunction, middleware in
-                    let getState = { self?.state }
-                    return middleware(self?.dispatch, getState)(dispatchFunction)
-            }
-        #endif
-
+        self.dispatchFunction = middleware
+            .reversed()
+            .reduce({ [unowned self] action in
+                #if swift(>=3)
+                    return self._defaultDispatch(action: action)
+                #else
+                    return self._defaultDispatch(action)
+                #endif
+            }) {
+                [weak self] dispatchFunction, middleware in
+                let getState = { self?.state }
+                return middleware(self?.dispatch, getState)(dispatchFunction)
+        }
 
         if let state = state {
             self.state = state
@@ -79,16 +74,6 @@ public class Store<State: StateType>: StoreType {
         }
     }
 
-    #if swift(>=3)
-    private func _isNewSubscriber(_ subscriber: AnyStoreSubscriber) -> Bool {
-        if subscriptions.contains({ $0.subscriber === subscriber }) {
-            print("Store subscriber is already added, ignoring.")
-            return false
-        }
-
-        return true
-    }
-    #else
     private func _isNewSubscriber(subscriber: AnyStoreSubscriber) -> Bool {
         if subscriptions.contains({ $0.subscriber === subscriber }) {
             print("Store subscriber is already added, ignoring.")
@@ -97,12 +82,11 @@ public class Store<State: StateType>: StoreType {
 
         return true
     }
-    #endif
 
     #if swift(>=3)
     public func subscribe<S: StoreSubscriber
         where S.StoreSubscriberStateType == State>(_ subscriber: S) {
-        subscribe(subscriber, selector: nil)
+            subscribe(subscriber, selector: nil)
     }
     #else
     public func subscribe<S: StoreSubscriber
@@ -115,16 +99,12 @@ public class Store<State: StateType>: StoreType {
     public func subscribe<SelectedState, S: StoreSubscriber
         where S.StoreSubscriberStateType == SelectedState>
         (_ subscriber: S, selector: ((State) -> SelectedState)?) {
-            if !_isNewSubscriber(subscriber) { return }
+            if !_isNewSubscriber(subscriber: subscriber) { return }
 
             subscriptions.append(Subscription(subscriber: subscriber, selector: selector))
 
             if let state = self.state {
-                #if swift(>=3)
-                    subscriber._newState(state: selector?(state) ?? state)
-                #else
-                    subscriber._newState(selector?(state) ?? state)
-                #endif
+                subscriber._newState(state: selector?(state) ?? state)
             }
     }
     #else
@@ -155,8 +135,7 @@ public class Store<State: StateType>: StoreType {
     }
     #endif
 
-    #if swift(>=3)
-    public func _defaultDispatch(_ action: Action) -> Any {
+    public func _defaultDispatch(action: Action) -> Any {
         guard !isDispatching else {
             fatalError("ReSwift:IllegalDispatchFromReducer - Reducers may not dispatch actions.")
         }
@@ -173,21 +152,6 @@ public class Store<State: StateType>: StoreType {
 
         return action
     }
-    #else
-    public func _defaultDispatch(action: Action) -> Any {
-        guard !isDispatching else {
-            fatalError("ReSwift:IllegalDispatchFromReducer - Reducers may not dispatch actions.")
-        }
-
-        isDispatching = true
-        let newState = reducer._handleAction(action, state: state) as! State
-        isDispatching = false
-
-        state = newState
-
-        return action
-    }
-    #endif
 
     #if swift(>=3)
     @discardableResult

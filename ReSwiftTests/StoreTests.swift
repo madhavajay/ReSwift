@@ -208,31 +208,18 @@ class StoreDispatchTest: XCTestCase {
     }
 
     func testAcceptsAsyncActionCreators() {
-        #if swift(>=3)
-            let asyncExpectation = expectation(withDescription: "It accepts async action creators")
-        #else
-            let asyncExpectation = expectationWithDescription("It accepts async action creators")
-        #endif
 
-        #if swift(>=3)
-            let asyncActionCreator: Store<TestAppState>.AsyncActionCreator = { _, _, callback in
-                DispatchQueue.global(attributes: .qosDefault).async() {
-                    // Provide the callback with an action creator
-                    callback { state, store in
-                        return SetValueAction(5)
-                    }
+        let asyncExpectation = futureExpectation(
+            withDescription: "It accepts async action creators")
+
+        let asyncActionCreator: Store<TestAppState>.AsyncActionCreator = { _, _, callback in
+            dispatchAsync() {
+                // Provide the callback with an action creator
+                callback { state, store in
+                    return SetValueAction(5)
                 }
             }
-        #else
-            let asyncActionCreator: Store<TestAppState>.AsyncActionCreator = { _, _, callback in
-                dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
-                    // Provide the callback with an action creator
-                    callback { state, store in
-                        return SetValueAction(5)
-                    }
-                }
-            }
-        #endif
+        }
 
         let subscriber = CallbackSubscriber { [unowned self] state in
             if self.store.state.testValue != nil {
@@ -243,48 +230,25 @@ class StoreDispatchTest: XCTestCase {
 
         store.subscribe(subscriber)
         store.dispatch(asyncActionCreator)
-        #if swift(>=3)
-            waitForExpectations(withTimeout: 1) { error in
-                if let error = error {
-                    XCTFail("waitForExpectationsWithTimeout errored: \(error)")
-                }
+        waitForFutureExpectations(withTimeout: 1) { error in
+            if let error = error {
+                XCTFail("waitForExpectationsWithTimeout errored: \(error)")
             }
-        #else
-            waitForExpectationsWithTimeout(1) { error in
-                if let error = error {
-                    XCTFail("waitForExpectationsWithTimeout errored: \(error)")
-                }
-            }
-        #endif
+        }
     }
 
     func testCallsCalbackOnce() {
-        #if swift(>=3)
-            let asyncExpectation = expectation(
-                withDescription: "It calls the callback once state update from async action is " +
-                                 "complete")
+        let asyncExpectation = futureExpectation(withDescription:
+            "It calls the callback once state update from async action is complete")
 
-            let asyncActionCreator: Store<TestAppState>.AsyncActionCreator = { _, _, callback in
-                DispatchQueue.global(attributes: .qosDefault).async() {
-                    // Provide the callback with an action creator
-                    callback { state, store in
-                        return SetValueAction(5)
-                    }
+        let asyncActionCreator: Store<TestAppState>.AsyncActionCreator = { _, _, callback in
+            dispatchAsync() {
+                // Provide the callback with an action creator
+                callback { state, store in
+                    return SetValueAction(5)
                 }
             }
-        #else
-            let asyncExpectation = expectationWithDescription(
-                "It calls the callback once state update from async action is complete")
-
-            let asyncActionCreator: Store<TestAppState>.AsyncActionCreator = { _, _, callback in
-                dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
-                    // Provide the callback with an action creator
-                    callback { state, store in
-                        return SetValueAction(5)
-                    }
-                }
-            }
-        #endif
+        }
 
         store.dispatch(asyncActionCreator) { newState in
             XCTAssertEqual(self.store.state.testValue, 5)
@@ -293,19 +257,11 @@ class StoreDispatchTest: XCTestCase {
             }
         }
 
-        #if swift(>=3)
-            waitForExpectations(withTimeout: 1) { error in
-                if let error = error {
-                    XCTFail("waitForExpectationsWithTimeout errored: \(error)")
-                }
+        waitForFutureExpectations(withTimeout: 1) { error in
+            if let error = error {
+                XCTFail("waitForExpectationsWithTimeout errored: \(error)")
             }
-        #else
-            waitForExpectationsWithTimeout(1) { error in
-                if let error = error {
-                    XCTFail("waitForExpectationsWithTimeout errored: \(error)")
-                }
-            }
-        #endif
+        }
     }
 }
 
