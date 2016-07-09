@@ -16,11 +16,7 @@ import Foundation
  */
 public protocol StoreType {
 
-    #if swift(>=2.2)
     associatedtype State: StateType
-    #else
-    typealias State: StateType
-    #endif
 
     /// Initializes the store with a reducer and an intial state.
     init(reducer: AnyReducer, state: State?)
@@ -156,11 +152,7 @@ public protocol StoreType {
      a successful login). However, you should try to use this callback very seldom as it
      deviates slighlty from the unidirectional data flow principal.
      */
-    #if swift(>=2.2)
     associatedtype DispatchCallback = (State) -> Void
-    #else
-    typealias DispatchCallback = (State) -> Void
-    #endif
 
     /**
      An ActionCreator is a function that, based on the received state argument, might or might not
@@ -182,18 +174,9 @@ public protocol StoreType {
      ```
 
      */
-    #if swift(>=2.2)
     associatedtype ActionCreator = (state: State, store: StoreType) -> Action?
-    #else
-    typealias ActionCreator = (state: State, store: StoreType) -> Action?
-    #endif
 
     /// AsyncActionCreators allow the developer to wait for the completion of an async action.
-    #if swift(>=2.2)
-    associatedtype AsyncActionCreator = (state: State, store: StoreType,
-    actionCreatorCallback: (ActionCreator) -> Void) -> Void
-    #else
-    typealias AsyncActionCreator = (state: State, store: StoreType,
-    actionCreatorCallback: ActionCreator -> Void) -> Void
-    #endif
+    associatedtype AsyncActionCreator =
+        (state: State, store: StoreType, actionCreatorCallback: (ActionCreator) -> Void) -> Void
 }
