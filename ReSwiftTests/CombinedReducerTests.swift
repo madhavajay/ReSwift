@@ -50,8 +50,10 @@ let emptyAction = "EMPTY_ACTION"
 
 class CombinedReducerTest: XCTestCase {
 
+    /**
+     it calls each of the reducers with the given action exactly once
+     */
     func testCallsReducersOnce() {
-        // it calls each of the reducers with the given action exactly once
         let mockReducer1 = MockReducer()
         let mockReducer2 = MockReducer()
 
@@ -71,8 +73,10 @@ class CombinedReducerTest: XCTestCase {
         XCTAssertEqual((mockReducer2.calledWithAction[0] as! StandardAction).type, emptyAction)
     }
 
+    /**
+     it combines the results from each individual reducer correctly
+     */
     func testCombinesReducerResults() {
-        // it combines the results from each individual reducer correctly
         let increaseByOneReducer = IncreaseByOneReducer()
         let increaseByTwoReducer = IncreaseByTwoReducer()
 

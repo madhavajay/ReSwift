@@ -12,18 +12,20 @@ import XCTest
 // swiftlint:disable file_length
 class StoreTests: XCTestCase {
 
+    /**
+     Dispatches an Init action when it doesn't receive an initial state
+     */
     func testInit() {
-        // Dispatches an Init action when it doesn't receive an initial state
-
         let reducer = MockReducer()
         let _ = Store<CounterState>(reducer: reducer, state: nil)
 
         XCTAssert(reducer.calledWithAction[0] is ReSwiftInit)
     }
 
+    /**
+     Deinitializes when no reference is held
+     */
     func testDeinit() {
-        // Deinitializes when no reference is held
-
         var deInitCount = 0
 
         autoreleasepool {
@@ -53,9 +55,10 @@ class StoreSubscribeTest: XCTestCase {
         store = Store(reducer: reducer, state: TestAppState())
     }
 
+    /**
+     It does not strongly capture an observer
+     */
     func testStrongCapture() {
-        // It does not strongly capture an observer
-
         store = Store(reducer: reducer, state: TestAppState())
         var subscriber: TestSubscriber? = TestSubscriber()
 
@@ -66,9 +69,10 @@ class StoreSubscribeTest: XCTestCase {
         XCTAssertEqual(store.subscriptions.flatMap({ $0.subscriber }).count, 0)
     }
 
+    /**
+     it removes deferenced subscribers before notifying state changes
+     */
     func testRemoveSubscribers() {
-        // it removes deferenced subscribers before notifying state changes
-
         store = Store(reducer: reducer, state: TestAppState())
         var subscriber1: TestSubscriber? = TestSubscriber()
         var subscriber2: TestSubscriber? = TestSubscriber()
@@ -90,8 +94,10 @@ class StoreSubscribeTest: XCTestCase {
         XCTAssertEqual(store.subscriptions.count, 0)
     }
 
+    /**
+     it dispatches initial value upon subscription
+     */
     func testDispatchInitialValue() {
-        // it dispatches initial value upon subscription
         store = Store(reducer: reducer, state: TestAppState())
         let subscriber = TestSubscriber()
 
@@ -101,8 +107,10 @@ class StoreSubscribeTest: XCTestCase {
         XCTAssertEqual(subscriber.receivedStates.last?.testValue, 3)
     }
 
+    /**
+     it allows dispatching from within an observer
+     */
     func testAllowDispatchWithinObserver() {
-        // it allows dispatching from within an observer
         store = Store(reducer: reducer, state: TestAppState())
         let subscriber = DispatchingSubscriber(store: store)
 
@@ -112,8 +120,10 @@ class StoreSubscribeTest: XCTestCase {
         XCTAssertEqual(store.state.testValue, 5)
     }
 
+    /**
+     it does not dispatch value after subscriber unsubscribes
+     */
     func testDontDispatchToUnsubscribers() {
-        // it does not dispatch value after subscriber unsubscribes
         store = Store(reducer: reducer, state: TestAppState())
         let subscriber = TestSubscriber()
 
@@ -137,8 +147,10 @@ class StoreSubscribeTest: XCTestCase {
         XCTAssertEqual(subscriber.receivedStates[subscriber.receivedStates.count - 1].testValue, 20)
     }
 
+    /**
+     it ignores identical subscribers
+     */
     func testIgnoreIdenticalSubscribers() {
-        // it ignores identical subscribers
         store = Store(reducer: reducer, state: TestAppState())
         let subscriber = TestSubscriber()
 
@@ -148,8 +160,10 @@ class StoreSubscribeTest: XCTestCase {
         XCTAssertEqual(store.subscriptions.count, 1)
     }
 
+    /**
+     it ignores identical subscribers that provide substate selectors
+     */
     func testIgnoreIdenticalSubstateSubscribers() {
-        // it ignores identical subscribers that provide substate selectors
         store = Store(reducer: reducer, state: TestAppState())
         let subscriber = TestSubscriber()
 
@@ -177,16 +191,20 @@ class StoreDispatchTest: XCTestCase {
         store = Store(reducer: reducer, state: TestAppState())
     }
 
+    /**
+     it returns the dispatched action
+     */
     func testReturnsDispatchedAction() {
-        // it returns the dispatched action
         let action = SetValueAction(10)
         let returnValue = store.dispatch(action)
 
         XCTAssertEqual((returnValue as? SetValueAction)?.value, action.value)
     }
 
+    /**
+     it throws an exception when a reducer dispatches an action
+     */
     func testThrowsExceptionWhenReducersDispatch() {
-        // it throws an exception when a reducer dispatches an action
         // Expectation lives in the `DispatchingReducer` class
         let reducer = DispatchingReducer()
         store = Store(reducer: reducer, state: TestAppState())
@@ -194,8 +212,10 @@ class StoreDispatchTest: XCTestCase {
         store.dispatch(SetValueAction(10))
     }
 
+    /**
+     it accepts action creators
+     */
     func testAcceptsActionCreators() {
-        // it accepts action creators
         store.dispatch(SetValueAction(5))
 
         let doubleValueActionCreator: Store<TestAppState>.ActionCreator = { state, store in

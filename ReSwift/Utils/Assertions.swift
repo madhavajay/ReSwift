@@ -20,7 +20,7 @@ import Foundation
                                  file: StaticString = #file, line: UInt = #line) {
     Assertions.fatalErrorClosure(message(), file, line)
     repeat {
-        RunLoop.current().run()
+        RunLoop.current.run()
     } while (true)
 }
 #else

@@ -76,8 +76,10 @@ let stateAccessingMiddleware: Middleware = { dispatch, getState in
 // swiftlint:disable function_body_length
 class StoreMiddlewareTest: XCTestCase {
 
+    /**
+     it can decorate dispatch function
+     */
     func testDecorateDispatch() {
-        // it can decorate dispatch function
         let reducer = TestValueStringReducer()
         let store = Store<TestStringAppState>(reducer: reducer,
             state: TestStringAppState(),
@@ -92,8 +94,10 @@ class StoreMiddlewareTest: XCTestCase {
         XCTAssertEqual(store.state.testValue, "OK First Middleware Second Middleware")
     }
 
+    /**
+     it can dispatch actions
+     */
     func testCanDispatch() {
-        // it can dispatch actions
         let reducer = TestValueStringReducer()
         let store = Store<TestStringAppState>(reducer: reducer,
             state: TestStringAppState(),
@@ -108,8 +112,10 @@ class StoreMiddlewareTest: XCTestCase {
         XCTAssertEqual(store.state.testValue, "10 First Middleware Second Middleware")
     }
 
+    /**
+     it can change the return value of the dispatch function
+     */
     func testCanChangeReturnValue() {
-        // it can change the return value of the dispatch function
         let reducer = TestValueStringReducer()
         let store = Store<TestStringAppState>(reducer: reducer,
             state: TestStringAppState(),
@@ -121,8 +127,10 @@ class StoreMiddlewareTest: XCTestCase {
         XCTAssertEqual(returnValue, "Converted Action Successfully")
     }
 
+    /**
+     it middleware can access the store's state
+     */
     func testMiddlewareCanAccessState() {
-        // it middleware can access the store's state
         let reducer = TestValueStringReducer()
         var state = TestStringAppState()
         state.testValue = "OK"

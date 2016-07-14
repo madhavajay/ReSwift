@@ -14,10 +14,10 @@ struct AppState2: StateType {}
 
 class TypeHelperTests: XCTestCase {
 
-    // Describe f_withSpecificTypes
-
+    /**
+     it calls methods if the source type can be casted into the function signature type
+     */
     func testSourceTypeCasting() {
-        // it calls methods if the source type can be casted into the function signature type
         var called = false
         let reducerFunction: (Action, AppState1?) -> AppState1 = { action, state in
             called = true
@@ -30,8 +30,10 @@ class TypeHelperTests: XCTestCase {
         XCTAssertTrue(called)
     }
 
+    /**
+     it calls the method if the source type is nil
+     */
     func testCallsIfSourceTypeIsNil() {
-        // it calls the method if the source type is nil
         var called = false
         let reducerFunction: (Action, AppState1?) -> AppState1 = { action, state in
             called = true
@@ -44,8 +46,10 @@ class TypeHelperTests: XCTestCase {
         XCTAssertTrue(called)
     }
 
+    /**
+     it doesn't call if source type can't be casted to function signature type
+     */
     func testDoesntCallIfCastFails() {
-        // it doesn't call if source type can't be casted to function signature type
         var called = false
         let reducerFunction: (Action, AppState1?) -> AppState1 = { action, state in
             called = true

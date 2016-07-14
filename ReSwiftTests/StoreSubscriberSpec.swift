@@ -11,8 +11,10 @@ import XCTest
 
 class StoreSubscriberTests: XCTestCase {
 
+    /**
+     it allows to pass a state selector closure
+     */
     func testAllowsSelectorClosure() {
-        // it allows to pass a state selector closure
         let reducer = TestReducer()
         let store = Store(reducer: reducer, state: TestAppState())
         let subscriber = TestFilteredSubscriber()
@@ -25,8 +27,10 @@ class StoreSubscriberTests: XCTestCase {
         XCTAssertEqual(subscriber.receivedValue, 3)
     }
 
+    /**
+     it supports complex state selector closures
+     */
     func testComplexStateSelector() {
-        // it supports complex state selector closures
         let reducer = TestComplexAppStateReducer()
         let store = Store(reducer: reducer, state: TestComplexAppState())
         let subscriber = TestSelectiveSubscriber()
