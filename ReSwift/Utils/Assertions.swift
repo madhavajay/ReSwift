@@ -16,7 +16,7 @@ import Foundation
  - parameter line:    Calling line
  */
 #if swift(>=3)
-@noreturn public func fatalError(_ message: @autoclosure () -> String = "",
+@noreturn internal func raiseFatalError(_ message: @autoclosure () -> String = "",
                                  file: StaticString = #file, line: UInt = #line) {
     Assertions.fatalErrorClosure(message(), file, line)
     repeat {
@@ -24,7 +24,7 @@ import Foundation
     } while (true)
 }
 #else
-@noreturn public func fatalError(@autoclosure message: () -> String = "",
+@noreturn internal func raiseFatalError(@autoclosure message: () -> String = "",
                                               file: StaticString = #file, line: UInt = #line) {
     Assertions.fatalErrorClosure(message(), file, line)
     repeat {
@@ -35,7 +35,7 @@ import Foundation
 
 /// Stores custom assertions closures, by default it points to Swift functions. But test target can
 /// override them.
-public class Assertions {
-    public static var fatalErrorClosure = swiftFatalErrorClosure
-    public static let swiftFatalErrorClosure = { Swift.fatalError($0, file: $1, line: $2) }
+internal class Assertions {
+    internal static var fatalErrorClosure = swiftFatalErrorClosure
+    internal static let swiftFatalErrorClosure = { Swift.fatalError($0, file: $1, line: $2) }
 }

@@ -137,7 +137,8 @@ public class Store<State: StateType>: StoreType {
 
     public func _defaultDispatch(action: Action) -> Any {
         guard !isDispatching else {
-            fatalError("ReSwift:IllegalDispatchFromReducer - Reducers may not dispatch actions.")
+            raiseFatalError(
+                "ReSwift:IllegalDispatchFromReducer - Reducers may not dispatch actions.")
         }
 
         isDispatching = true
